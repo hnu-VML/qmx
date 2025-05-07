@@ -1,4 +1,6 @@
-# [Efficient Plug-and-Play Algorithm for Video Snapshot Compressive Imaging and Optical Measurement Application](https://github.com/Qinmengxi/EfficientPnP)
+# [Efficient Plug-and-Play Algorithm for Video Snapshot Compressive Imaging and Optical Measurement Application](https://github.com/hnu-VML/qmx/tree/main/RCO-BDPnP)
+
+We will be open-sourcing more code shortly. Please stay tuned for updates.
 
 ## Network Architecture
 <div align="center">
