@@ -85,13 +85,13 @@ def Reconstruction_single(args, dataname, method, sigma=[100/255, 50/255, 25/255
         # model.load_state_dict(state_dict)
         model.load_state_dict({k.replace('module.',''): v for k,v in state_dict.items()})
         model.eval()
-    elif ((method=="pnp-fastdvdnet") or (method=="pnp-fastdvdnet-mmco") or (method=="pnp-fastdvdnet-mmco-haof") or (method=="pnp-fastdvdnet-haof")):
+    elif (method=="pnp-fastdvdnet"):
         model = FastDVDnet(num_input_frames=NUM_IN_FR_EXT,num_color_channels=1).cuda()
         # Load saved weights
         state_temp_dict = torch.load('./packages/fastdvdnet/model_gray.pth')
         model.load_state_dict(state_temp_dict)
         model.eval()
-    elif ((method=="pnp-bifastdvdnet") or (method=="rco-bdpnp") or (method=="pnp-bifastdvdnet-mmco") or (method=="pnp-bifastdvdnet-haof")):
+    elif (method=="rco-bdpnp"):
         model = BiFastDVDnet(num_input_frames=NUM_IN_FR_EXT,num_color_channels=1).cuda()
         # Load saved weights
         state_temp_dict = torch.load('./packages/bifastdvdnet/logs/simulation.pth') #photomechanical_imaging
