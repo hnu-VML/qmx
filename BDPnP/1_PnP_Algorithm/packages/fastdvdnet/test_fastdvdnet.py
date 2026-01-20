@@ -141,7 +141,7 @@ def test_fastdvdnet(**args):
 	# close logger
 	close_logger(logger)
 
-def fastdvdnet_denoiser(vnoisy, sigma, model=None, useGPU=True, gray=False, MMCO=False):
+def fastdvdnet_denoiser(vnoisy, sigma, model=None, useGPU=True, gray=False, CMTC=False):
 	r"""Denoise an input video (H x W x F x C for color video, and H x W x F for
 	     grayscale video) with FastDVDnet
 	"""
@@ -188,7 +188,7 @@ def fastdvdnet_denoiser(vnoisy, sigma, model=None, useGPU=True, gray=False, MMCO
 									  noise_std=noisestd,\
 									  windsize=NUM_IN_FR_EXT,\
 									  model=model, \
-               					      MMCO=MMCO)
+               					      CMTC=CMTC)
 		# print(outv.shape)
 		# print(torch.max(outv),torch.min(outv))
 		outv = outv.permute(2, 3, 0, 1) # back from F x C x H x W to H x W x F x C

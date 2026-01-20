@@ -79,7 +79,7 @@ def denoise_seq_fastdvdnet(seq, noise_std, windsize, model):
 	return denframes
 
 
-def fastdvdnet_seqdenoise(seq, noise_std, windsize, model, MMCO=False):
+def fastdvdnet_seqdenoise(seq, noise_std, windsize, model, CMTC=False):
 	r"""Denoising a video sequence with FastDVDnet.
 	
 	Parameters 
@@ -112,7 +112,7 @@ def fastdvdnet_seqdenoise(seq, noise_std, windsize, model, MMCO=False):
 
 	for frameidx in range(N):
 		# cicular padding for edge frames in the video sequence
-		if MMCO and N>15:
+		if CMTC and N>15:
 			if frameidx==0:
 				idx = torch.tensor([5,6,0,1,2]) # 5,6,0,1,2
 			elif frameidx==1:

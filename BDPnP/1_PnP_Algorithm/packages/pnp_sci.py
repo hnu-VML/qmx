@@ -23,7 +23,7 @@ else: # skimage.measure deprecated in version 0.18 ( -> skimage.metrics )
 
 
 def admmdenoise_cacti(meas, mask, A, At, v0=None, orig=None, iframe=0, nframe=1, MAXB=1., 
-                      maskdirection='plain', HAOF=False, MMCO=False, is_real=False, **args):
+                      maskdirection='plain', HAF=False, CMTC=False, is_real=False, **args):
     '''
     Alternating direction method of multipliers (ADMM) or generalized 
     alternating projection (GAP) -based denoising (based on the 
@@ -55,7 +55,7 @@ def admmdenoise_cacti(meas, mask, A, At, v0=None, orig=None, iframe=0, nframe=1,
                v0_k = v0_k[...,::-1]
 
         x_k, psnr_k, ssim_k =  gap_denoise(meas_k, mask_sum, A, At, x0=v0_k, X_orig=orig_k, 
-                                           HAOF=HAOF, MMCO = MMCO, is_real=is_real, **args)
+                                           HAF=HAF, CMTC = CMTC, is_real=is_real, **args)
         
         if (maskdirection.lower() == 'updown' and (kf+iframe) % 2 == 1) or \
            (maskdirection.lower() == 'downup' and (kf+iframe) % 2 == 0):   # down (up as mask)
@@ -71,7 +71,7 @@ def admmdenoise_cacti(meas, mask, A, At, v0=None, orig=None, iframe=0, nframe=1,
     return x_, t_, psnr_, ssim_
 
 def admmdenoise_cacti_batch(meas, mask, A, At, v0=None, orig=None, nframe=1, 
-                            MAXB=1., HAOF=False, MMCO=False, is_real=False, **args):
+                            MAXB=1., HAF=False, CMTC=False, is_real=False, **args):
     '''
     Alternating direction method of multipliers (ADMM) or generalized 
     alternating projection (GAP) -based denoising (based on the 
@@ -92,7 +92,7 @@ def admmdenoise_cacti_batch(meas, mask, A, At, v0=None, orig=None, nframe=1,
 
     x, psnr, ssim =  gap_denoise_batch(meas[:,:,0:nframe]/MAXB, mask_sum, A, At, nmask, 
                                        x0=v0_k, X_orig=orig[:,:,0:nframe*nmask]/MAXB, 
-                                       HAOF=HAOF, MMCO = MMCO, is_real=is_real, **args)
+                                       HAF=HAF, CMTC = CMTC, is_real=is_real, **args)
         
     t = time.time() - begin_time
         
@@ -102,7 +102,7 @@ def admmdenoise_cacti_batch(meas, mask, A, At, v0=None, orig=None, nframe=1,
 def gap_denoise(y, Phi_sum, A, At, _lambda=1, accelerate=True, 
                 method='tv', iter_max=50, noise_estimate=False, sigma=None, 
                 tv_weight=0.1, tv_iter_max=5, multichannel=True, x0=None, 
-                X_orig=None, model=None, show_iqa=True, HAOF=False, MMCO=False, is_real=False):
+                X_orig=None, model=None, show_iqa=True, HAF=False, CMTC=False, is_real=False):
     '''
     Alternating direction method of multipliers (ADMM)[1]-based denoising 
     regularization for snapshot compressive imaging (SCI).
@@ -227,7 +227,7 @@ def gap_denoise(y, Phi_sum, A, At, _lambda=1, accelerate=True,
                 x = denoise_tv_chambolle(x, tv_weight, n_iter_max=tv_iter_max, 
                                          multichannel=multichannel)
             elif method.lower() == 'pnp-ffdnet': # FFDNet frame-wise video denoising
-                if HAOF and is_real:
+                if HAF and is_real:
                     if  idx == 0:
                         x = ffdnet_vdenoiser(x, nsig, model)
                     elif idx == 1:
@@ -235,7 +235,7 @@ def gap_denoise(y, Phi_sum, A, At, _lambda=1, accelerate=True,
                                                     multichannel=multichannel)
                     else:
                         x = ffdnet_vdenoiser(x, nsig, model)
-                elif HAOF and not is_real:
+                elif HAF and not is_real:
                     if  idx == 0:
                         x = denoise_tv_chambolle(x, tv_weight, n_iter_max=tv_iter_max, 
                                                     multichannel=multichannel)
@@ -244,7 +244,7 @@ def gap_denoise(y, Phi_sum, A, At, _lambda=1, accelerate=True,
                 else:
                     x = ffdnet_vdenoiser(x, nsig, model)
             elif method.lower() == 'pnp-biffdnet': # FFDNet frame-wise video denoising
-                if HAOF and is_real:
+                if HAF and is_real:
                     if  idx == 0:
                         x = biffdnet_vdenoiser(x, nsig, model)
                     elif idx == 1:
@@ -252,7 +252,7 @@ def gap_denoise(y, Phi_sum, A, At, _lambda=1, accelerate=True,
                                                     multichannel=multichannel)
                     else:
                         x = biffdnet_vdenoiser(x, nsig, model)
-                elif HAOF and not is_real:
+                elif HAF and not is_real:
                     if  idx == 0:
                         x = denoise_tv_chambolle(x, tv_weight, n_iter_max=tv_iter_max, 
                                                     multichannel=multichannel)
@@ -260,48 +260,48 @@ def gap_denoise(y, Phi_sum, A, At, _lambda=1, accelerate=True,
                         x = biffdnet_vdenoiser(x, nsig, model)
                 else:
                     x = biffdnet_vdenoiser(x, nsig, model)
-            elif ((method.lower()=="pnp-fastdvdnet") or (method.lower()=="pnp-fastdvdnet-mmco") or (method.lower()=="pnp-fastdvdnet-mmco-haof") or (method.lower()=="pnp-fastdvdnet-haof")): # FastDVDnet video denoising
-                if HAOF and is_real:
+            elif ((method.lower()=="pnp-fastdvdnet") or (method.lower()=="pnp-fastdvdnet-cmtc") or (method.lower()=="pnp-fastdvdnet-cmtc-haf") or (method.lower()=="pnp-fastdvdnet-haf")): # FastDVDnet video denoising
+                if HAF and is_real:
                     if  idx == 0:
                         x = fastdvdnet_denoiser(x, nsig, model, gray=True, \
-                                                  MMCO=MMCO) # grayscale video denoising
+                                                  CMTC=CMTC) # grayscale video denoising
                     elif idx == 1:
                         x = denoise_tv_chambolle(x, tv_weight, n_iter_max=tv_iter_max, 
                                                  multichannel=multichannel)
                     else:
                         x = fastdvdnet_denoiser(x, nsig, model, gray=True, \
-                                                  MMCO=MMCO) # grayscale video denoising
-                elif HAOF and not is_real:
+                                                  CMTC=CMTC) # grayscale video denoising
+                elif HAF and not is_real:
                     if  idx == 0:
                         x = denoise_tv_chambolle(x, tv_weight, n_iter_max=tv_iter_max, 
                                                  multichannel=multichannel)
                     else:
                         x = fastdvdnet_denoiser(x, nsig, model, gray=True, \
-                                                  MMCO=MMCO) # grayscale video denoising
+                                                  CMTC=CMTC) # grayscale video denoising
                 else:
                     x = fastdvdnet_denoiser(x, nsig, model, gray=True, \
-                                            MMCO=MMCO) # grayscale video denoising
-            elif ((method.lower() == 'pnp-bifastdvdnet') or (method.lower() == 'rco-bdpnp') or (method.lower() == 'pnp-bifastdvdnet-mmco') or (method.lower() == 'pnp-bifastdvdnet-haof')): # BiFastDVDnet video denoising
-                if HAOF and is_real:
+                                            CMTC=CMTC) # grayscale video denoising
+            elif ((method.lower() == 'pnp-bifastdvdnet') or (method.lower() == 'bdpnp') or (method.lower() == 'pnp-bifastdvdnet-cmtc') or (method.lower() == 'pnp-bifastdvdnet-haf')): # BiFastDVDnet video denoising
+                if HAF and is_real:
                     if  idx == 0:
                         x = bifastdvdnet_denoiser(x, nsig, model, gray=True, \
-                                                  MMCO=MMCO) # grayscale video denoising
+                                                  CMTC=CMTC) # grayscale video denoising
                     elif idx == 1:
                         x = denoise_tv_chambolle(x, tv_weight, n_iter_max=tv_iter_max, 
                                                  multichannel=multichannel)
                     else:
                         x = bifastdvdnet_denoiser(x, nsig, model, gray=True, \
-                                                  MMCO=MMCO) # grayscale video denoising
-                elif HAOF and not is_real:
+                                                  CMTC=CMTC) # grayscale video denoising
+                elif HAF and not is_real:
                     if  idx == 0:
                         x = denoise_tv_chambolle(x, tv_weight, n_iter_max=tv_iter_max, 
                                                  multichannel=multichannel)
                     else:
                         x = bifastdvdnet_denoiser(x, nsig, model, gray=True, \
-                                              MMCO=MMCO) # grayscale video denoising
+                                              CMTC=CMTC) # grayscale video denoising
                 else:
                     x = bifastdvdnet_denoiser(x, nsig, model, gray=True, \
-                                              MMCO=MMCO) # grayscale video denoising
+                                              CMTC=CMTC) # grayscale video denoising
             else:
                 raise ValueError('Unsupported denoiser {}!'.format(method))
             
@@ -354,7 +354,7 @@ def gap_denoise(y, Phi_sum, A, At, _lambda=1, accelerate=True,
 def gap_denoise_batch(y, Phi_sum, A, At, nmask, _lambda=1, accelerate=True, 
                       method='tv', iter_max=50, noise_estimate=False, sigma=None, 
                       tv_weight=0.1, tv_iter_max=5, multichannel=True, x0=None, 
-                      X_orig=None, model=None, show_iqa=True, HAOF=False, MMCO=False, is_real=False):
+                      X_orig=None, model=None, show_iqa=True, HAF=False, CMTC=False, is_real=False):
     '''
     Alternating direction method of multipliers (ADMM)[1]-based denoising 
     regularization for snapshot compressive imaging (SCI).
@@ -470,47 +470,47 @@ def gap_denoise_batch(y, Phi_sum, A, At, nmask, _lambda=1, accelerate=True,
             elif method.lower() == 'pnp-biffdnet': # FFDNet frame-wise video denoising
                 x = biffdnet_vdenoiser(x, nsig, model)
             elif (method.lower()=="pnp-fastdvdnet"): # FastDVDnet video denoising
-                if HAOF and is_real:
+                if HAF and is_real:
                     if  idx == 0:
                         x = fastdvdnet_denoiser(x, nsig, model, gray=True, \
-                                                  MMCO=MMCO) # grayscale video denoising
+                                                  CMTC=CMTC) # grayscale video denoising
                     elif idx == 1:
                         x = denoise_tv_chambolle(x, tv_weight, n_iter_max=tv_iter_max, 
                                                  multichannel=multichannel)
                     else:
                         x = fastdvdnet_denoiser(x, nsig, model, gray=True, \
-                                                  MMCO=MMCO) # grayscale video denoising
-                elif HAOF and not is_real:
+                                                  CMTC=CMTC) # grayscale video denoising
+                elif HAF and not is_real:
                     if  idx == 0:
                         x = denoise_tv_chambolle(x, tv_weight, n_iter_max=tv_iter_max, 
                                                  multichannel=multichannel)
                     else:
                         x = fastdvdnet_denoiser(x, nsig, model, gray=True, \
-                                                  MMCO=MMCO) # grayscale video denoising
+                                                  CMTC=CMTC) # grayscale video denoising
                 else:
                     x = fastdvdnet_denoiser(x, nsig, model, gray=True, \
-                                        MMCO=MMCO) # grayscale video denoising
-            elif (method.lower() == 'rco-bdpnp'): # FastDVDnet video denoising
-                if HAOF and is_real:
+                                        CMTC=CMTC) # grayscale video denoising
+            elif (method.lower() == 'bdpnp'): # FastDVDnet video denoising
+                if HAF and is_real:
                     if  idx == 0:
                         x = bifastdvdnet_denoiser(x, nsig, model, gray=True, \
-                                                  MMCO=MMCO) # grayscale video denoising
+                                                  CMTC=CMTC) # grayscale video denoising
                     elif idx == 1:
                         x = denoise_tv_chambolle(x, tv_weight, n_iter_max=tv_iter_max, 
                                                  multichannel=multichannel)
                     else:
                         x = bifastdvdnet_denoiser(x, nsig, model, gray=True, \
-                                                  MMCO=MMCO) # grayscale video denoising
-                elif HAOF and not is_real:
+                                                  CMTC=CMTC) # grayscale video denoising
+                elif HAF and not is_real:
                     if  idx == 0:
                         x = denoise_tv_chambolle(x, tv_weight, n_iter_max=tv_iter_max, 
                                                  multichannel=multichannel)
                     else:
                         x = bifastdvdnet_denoiser(x, nsig, model, gray=True, \
-                                                  MMCO=MMCO) # grayscale video denoising
+                                                  CMTC=CMTC) # grayscale video denoising
                 else:
                     x = bifastdvdnet_denoiser(x, nsig, model, gray=True, \
-                                              MMCO=MMCO) # grayscale video denoising
+                                              CMTC=CMTC) # grayscale video denoising
             else:
                 raise ValueError('Unsupported denoiser {}!'.format(method))
             

@@ -20,7 +20,7 @@ from scipy.io.matlab.mio import _open_file
 from scipy.io.matlab.miobase import get_matfile_version
 
 def main(args, method, sigma=[100/255, 50/255, 25/255, 12/255], iter_max=[20, 20, 20, 20], 
-        MMCO=False, is_real=False, HAOF=False):
+        CMTC=False, is_real=False, HAF=False):
     # 遍历所有有mat文件
     for dataname in os.listdir(args.datasetdir):
         if(dataname.endswith('.mat')):
@@ -50,7 +50,7 @@ def main(args, method, sigma=[100/255, 50/255, 25/255, 12/255], iter_max=[20, 20
 
             # common parameters and pre-calculation for PnP
             # define forward model and its transpose
-            if MMCO:
+            if CMTC:
                 A  = lambda x : A_Batch(x, mask) # batch forward model function handle
                 At = lambda y : At_Batch(y, mask) # batch transpose of forward model
             else:
@@ -93,7 +93,7 @@ def main(args, method, sigma=[100/255, 50/255, 25/255, 12/255], iter_max=[20, 20
                 state_temp_dict = torch.load('./packages/fastdvdnet/model_gray.pth') # binary  model_gray ckpt_e51
                 model.load_state_dict(state_temp_dict)
                 model.eval()
-            elif (method=="rco-bdpnp"):
+            elif (method=="bdpnp"):
                 model = BiFastDVDnet(num_input_frames=NUM_IN_FR_EXT,num_color_channels=1).cuda()
                 # Load saved weights
                 state_temp_dict = torch.load('./packages/bifastdvdnet/logs/photomechanical_imaging.pth')
@@ -102,20 +102,20 @@ def main(args, method, sigma=[100/255, 50/255, 25/255, 12/255], iter_max=[20, 20
             else:
                 raise ValueError('Unsupported method {}!'.format(method))
 
-            if MMCO:
+            if CMTC:
                 vgapfastdvdnet,tgapfastdvdnet,psnr_gapfastdvdnet,ssim_gapfastdvdnet = admmdenoise_cacti_batch(meas, mask, A, At,
                                                     v0=None, orig=orig, nframe=nframe,
                                                     MAXB=MAXB, method=method, model=model, 
                                                     iter_max=iter_max, sigma=sigma,
                                                     tv_weight=args.tv_weight, tv_iter_max=args.tv_iter_max,
-                                                    HAOF=HAOF, MMCO = MMCO, is_real=args.is_real)
+                                                    HAF=HAF, CMTC = CMTC, is_real=args.is_real)
             else:
                 vgapfastdvdnet,tgapfastdvdnet,psnr_gapfastdvdnet,ssim_gapfastdvdnet = admmdenoise_cacti(meas, mask, A, At,
                                                     v0=None, orig=orig, nframe=nframe,
                                                     MAXB=MAXB, method=method, model=model, 
                                                     iter_max=iter_max, sigma=sigma,
                                                     tv_weight=args.tv_weight, tv_iter_max=args.tv_iter_max,
-                                                    HAOF=HAOF, MMCO = MMCO, is_real=args.is_real)
+                                                    HAF=HAF, CMTC = CMTC, is_real=args.is_real)
 
             print('{} PSNR {:2.2f} dB, SSIM {:.4f}, running time {:.1f} seconds.'.format(
                   method.upper(), mean(psnr_gapfastdvdnet), mean(ssim_gapfastdvdnet), tgapfastdvdnet))
@@ -141,12 +141,12 @@ if __name__ == "__main__":
 
     #Training parameters
     parser.add_argument("--method", type=str, default="pnp-fastdvdnet", 	\
-                        help="SCI reconstruction model, such as gap-tv, pnp-ffdnet, pnp-biffdnet, pnp-fastdvdnet and rco-bdpnp.")
+                        help="SCI reconstruction model, such as gap-tv, pnp-ffdnet, pnp-biffdnet, pnp-fastdvdnet and bdpnp.")
     parser.add_argument("--gpu", type=str, default="0", \
                         help="Select the GPU for acceleration")
     parser.add_argument("--is_real", type=bool, default=True, \
                         help="Whether to process real data")
-    parser.add_argument("--MMCO", type=bool, default=False, \
+    parser.add_argument("--CMTC", type=bool, default=False, \
                         help="Whether to use boundary denoising")
     parser.add_argument("--sigma", default=[100/255, 50/255, 25/255, 12/255], \
                         help="Noise Level")
@@ -180,10 +180,10 @@ if __name__ == "__main__":
     
     # --------------------------- PnP-FastDVDnet (PnP+FastDVDnet) -------------------------- #
     main(argspar, method="pnp-fastdvdnet", sigma=[75/255,75/255], 
-         iter_max=[20,20], MMCO=False, is_real=True)
+         iter_max=[20,20], CMTC=False, is_real=True)
     
-    # ------------------------ RCO-BDPnP (PnP+BiFastDVDnet+MMCO+HAOF) ---------------------- #
-    main(argspar, method="rco-bdpnp", sigma=[75/255,75/255,75/255], iter_max=[18,40,2], 
-         MMCO=True, is_real=True, HAOF=True)
+    # -------------------------- BDPnP (PnP+BiFastDVDnet+CMTC+HAF) ------------------------- #
+    main(argspar, method="bdpnp", sigma=[75/255,75/255,75/255], iter_max=[18,40,2], 
+         CMTC=True, is_real=True, HAF=True)
     
     

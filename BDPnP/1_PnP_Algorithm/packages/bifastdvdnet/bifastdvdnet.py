@@ -79,7 +79,7 @@ def denoise_seq_bifastdvdnet(seq, noise_std, windsize, model):
 	return denframes
 
 
-def bifastdvdnet_seqdenoise(seq, noise_std, windsize, model, MMCO=False):
+def bifastdvdnet_seqdenoise(seq, noise_std, windsize, model, CMTC=False):
 	r"""Denoising a video sequence with BiFastDVDnet.
 	
 	Parameters 
@@ -112,17 +112,54 @@ def bifastdvdnet_seqdenoise(seq, noise_std, windsize, model, MMCO=False):
 
 	for frameidx in range(N):
 		# cicular padding for edge frames in the video sequence
-		if MMCO and N>15:
+		if CMTC and N>15:
+			# --------------- M1 --------------- #
 			if frameidx==0:
-				idx = torch.tensor([5,6,0,1,2]) # 5,6,0,1,2
+				idx = torch.tensor([3,4,0,1,2])
 			elif frameidx==1:
-				idx = torch.tensor([6,0,1,2,3]) # 6,0,1,2,3
+				idx = torch.tensor([4,0,1,2,3])
 			elif frameidx==N-2:
-				idx = torch.tensor([N-4,N-3,N-2,N-1,N-7]) # N-4,N-3,N-2,N-1,N-7
+				idx = torch.tensor([N-4,N-3,N-2,N-1,N-5])
 			elif frameidx==N-1:
-				idx = torch.tensor([N-3,N-2,N-1,N-7,N-6]) # N-3,N-2,N-1,N-7,N-6
+				idx = torch.tensor([N-3,N-2,N-1,N-5,N-4])
 			else:
 				idx = (torch.tensor(range(frameidx, frameidx+windsize)) - hw) % N # circular padding
+
+			# # --------------- M2 --------------- #
+			# if frameidx==0:
+			# 	idx = torch.tensor([4,5,0,1,2])
+			# elif frameidx==1:
+			# 	idx = torch.tensor([5,0,1,2,3])
+			# elif frameidx==N-2:
+			# 	idx = torch.tensor([N-4,N-3,N-2,N-1,N-6])
+			# elif frameidx==N-1:
+			# 	idx = torch.tensor([N-3,N-2,N-1,N-6,N-5])
+			# else:
+			# 	idx = (torch.tensor(range(frameidx, frameidx+windsize)) - hw) % N # circular padding
+
+			# # --------------- M3 --------------- #
+			# if frameidx==0:
+			# 	idx = torch.tensor([5,6,0,1,2])
+			# elif frameidx==1:
+			# 	idx = torch.tensor([6,0,1,2,3])
+			# elif frameidx==N-2:
+			# 	idx = torch.tensor([N-4,N-3,N-2,N-1,N-7])
+			# elif frameidx==N-1:
+			# 	idx = torch.tensor([N-3,N-2,N-1,N-7,N-6])
+			# else:
+			# 	idx = (torch.tensor(range(frameidx, frameidx+windsize)) - hw) % N # circular padding
+
+			# # --------------- M4 --------------- #
+			# if frameidx==0:
+			# 	idx = torch.tensor([6,7,0,1,2])
+			# elif frameidx==1:
+			# 	idx = torch.tensor([7,0,1,2,3])
+			# elif frameidx==N-2:
+			# 	idx = torch.tensor([N-4,N-3,N-2,N-1,N-8])
+			# elif frameidx==N-1:
+			# 	idx = torch.tensor([N-3,N-2,N-1,N-8,N-7])
+			# else:
+			# 	idx = (torch.tensor(range(frameidx, frameidx+windsize)) - hw) % N # circular padding
 		else:
 			idx = (torch.tensor(range(frameidx, frameidx+windsize)) - hw) % N # circular padding
    

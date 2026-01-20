@@ -20,7 +20,7 @@ from scipy.io.matlab.mio import _open_file
 from scipy.io.matlab.miobase import get_matfile_version
 
 def Reconstruction_single(args, dataname, method, sigma=[100/255, 50/255, 25/255, 12/255], 
-                          iter_max=[20, 20, 20, 20], MMCO=False, HAOF=False,nframe=None):
+                          iter_max=[20, 20, 20, 20], CMTC=False, HAF=False,nframe=None):
     
     matfile = os.path.join(args.datasetdir, dataname)
     # load data
@@ -48,7 +48,7 @@ def Reconstruction_single(args, dataname, method, sigma=[100/255, 50/255, 25/255
 
     # common parameters and pre-calculation for PnP
     # define forward model and its transpose
-    if MMCO:
+    if CMTC:
         A  = lambda x : A_Batch(x, mask) # batch forward model function handle
         At = lambda y : At_Batch(y, mask) # batch transpose of forward model
     else:
@@ -91,7 +91,7 @@ def Reconstruction_single(args, dataname, method, sigma=[100/255, 50/255, 25/255
         state_temp_dict = torch.load('./packages/fastdvdnet/model_gray.pth')
         model.load_state_dict(state_temp_dict)
         model.eval()
-    elif (method=="rco-bdpnp"):
+    elif (method=="bdpnp"):
         model = BiFastDVDnet(num_input_frames=NUM_IN_FR_EXT,num_color_channels=1).cuda()
         # Load saved weights
         state_temp_dict = torch.load('./packages/bifastdvdnet/logs/simulation.pth') #photomechanical_imaging
@@ -100,20 +100,20 @@ def Reconstruction_single(args, dataname, method, sigma=[100/255, 50/255, 25/255
     else:
         raise ValueError('Unsupported method {}!'.format(method))
 
-    if MMCO:
+    if CMTC:
         vgapfastdvdnet,tgapfastdvdnet,psnr_gapfastdvdnet,ssim_gapfastdvdnet = admmdenoise_cacti_batch(meas, mask, A, At,
                                             v0=None, orig=orig, nframe=nframe,
                                             MAXB=MAXB, method=method, model=model, 
                                             iter_max=iter_max, sigma=sigma,
                                             tv_weight=args.tv_weight, tv_iter_max=args.tv_iter_max,
-                                            MMCO = MMCO, HAOF=HAOF)
+                                            CMTC = CMTC, HAF=HAF)
     else:
         vgapfastdvdnet,tgapfastdvdnet,psnr_gapfastdvdnet,ssim_gapfastdvdnet = admmdenoise_cacti(meas, mask, A, At,
                                             v0=None, orig=orig, nframe=nframe,
                                             MAXB=MAXB, method=method, model=model, 
                                             iter_max=iter_max, sigma=sigma,
                                             tv_weight=args.tv_weight, tv_iter_max=args.tv_iter_max,
-                                            MMCO = MMCO, HAOF=HAOF)
+                                            CMTC = CMTC, HAF=HAF)
 
     print('{} PSNR {:2.2f} dB, SSIM {:.4f}, running time {:.1f} seconds.'.format(
             method.upper(), mean(psnr_gapfastdvdnet), mean(ssim_gapfastdvdnet), tgapfastdvdnet))
@@ -138,8 +138,8 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Video SCI Reconstruction")
 
     #Training parameters
-    parser.add_argument("--method", type=str, default="rco-bdpnp", 	\
-                        help="SCI reconstruction model, such as gap-tv, pnp-ffdnet, pnp-biffdnet, pnp-fastdvdnet, and rco-bdpnp.")
+    parser.add_argument("--method", type=str, default="bdpnp", 	\
+                        help="SCI reconstruction model, such as gap-tv, pnp-ffdnet, pnp-biffdnet, pnp-fastdvdnet, and bdpnp.")
     parser.add_argument("--gpu", type=str, default="0", \
                         help="Select the GPU for acceleration")
     parser.add_argument("--is_real", type=bool, default=False, \
@@ -235,47 +235,47 @@ if __name__ == "__main__":
     Reconstruction_single(argspar, "runner40_cacti.mat", method="pnp-fastdvdnet", nframe=1)
     Reconstruction_single(argspar, "traffic48_cacti.mat", method="pnp-fastdvdnet")
     
-    # ------------------------ RCO-BDPnP (PnP-BiFastDVDnet+MMCO+HAOF) ------------------------ #
-    print("----------------------- RCO-BDPnP (PnP-BiFastDVDnet+MMCO+HAOF) -----------------------")
+    # ------------------------- BDPnP (PnP-BiFastDVDnet+CMTC+HAF) ------------------------- #
+    print("------------------------- BDPnP (PnP-BiFastDVDnet+CMTC+HAF) -------------------------")
     Reconstruction_single(argspar, "aerial32_cacti.mat",
-                          method="rco-bdpnp", 
+                          method="bdpnp", 
                           sigma=[120/255,120/255,35/255,20/255,20/255],
                           iter_max=[5,15,20,20,20],
-                          MMCO=True,
-                          HAOF=True,
+                          CMTC=True,
+                          HAF=True,
                           nframe=None)
     Reconstruction_single(argspar, "crash32_cacti.mat",
-                          method="rco-bdpnp", 
+                          method="bdpnp", 
                           sigma=[145/255,145/255,75/255,50/255,25/255],
                           iter_max=[5,15,20,20,20],
-                          MMCO=True,
-                          HAOF=True,
+                          CMTC=True,
+                          HAF=True,
                           nframe=None)
     Reconstruction_single(argspar, "drop40_cacti.mat",
-                          method="rco-bdpnp", 
+                          method="bdpnp", 
                           sigma=[145/255,200/255,60/255,20/255,7/255], 
                           iter_max=[1,19,20,20,20],
-                          MMCO=True,
-                          HAOF=True,
+                          CMTC=True,
+                          HAF=True,
                           nframe=1)
     Reconstruction_single(argspar, "kobe32_cacti.mat",
-                          method="rco-bdpnp", 
+                          method="bdpnp", 
                           sigma=[145/255,90/255,40/255,25/255,15/255],
                           iter_max=[10,10,20,20,20],
-                          MMCO=True,
-                          HAOF=True,
+                          CMTC=True,
+                          HAF=True,
                           nframe=None)
     Reconstruction_single(argspar, "runner40_cacti.mat",
-                          method="rco-bdpnp", 
+                          method="bdpnp", 
                           sigma=[145/255,130/255,65/255,30/255,6/255],
                           iter_max=[5,45,10,10,10],
-                          MMCO=False,
-                          HAOF=True,
+                          CMTC=False,
+                          HAF=True,
                           nframe=1)
     Reconstruction_single(argspar, "traffic48_cacti.mat",
-                          method="rco-bdpnp", 
+                          method="bdpnp", 
                           sigma=[145/255,145/255,100/255,50/255,25/255],
                           iter_max=[5,15,20,20,20],
-                          MMCO=True,
-                          HAOF=True,
+                          CMTC=True,
+                          HAF=True,
                           nframe=None)
