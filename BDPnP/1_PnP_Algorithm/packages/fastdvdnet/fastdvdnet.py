@@ -5,6 +5,7 @@ FastDVDnet denoising algorithm
 """
 import torch
 import torch.nn.functional as F
+from fvcore.nn import FlopCountAnalysis, parameter_count
 
 def temp_denoise(model, noisyframe, sigma_noise):
 	'''Encapsulates call to denoising model and handles padding.
@@ -144,6 +145,18 @@ def fastdvdnet_seqdenoise(seq, noise_std, windsize, model, CMTC=False):
 		
 		# apply the denoising model to the input datat
 		frame_denoised = model(noisy_seq, noise_map)
+
+		# test_inputs = (torch.randn(1, 5, 1024, 1024).cuda(), torch.randn(1, 1, 1024, 1024).cuda())
+		# # 计算FLOPs
+		# flops = FlopCountAnalysis(model, test_inputs)
+		# total_flops = flops.total() / 1e9  # 转换为GFLOPs
+
+		# # 计算参数数量
+		# params = parameter_count(model)
+		# total_params = params[""] / 1e6  # 转换为M（百万）
+
+		# print(f"Total FLOPs: {total_flops}")
+		# print(f"Total parameters: {total_params}")
 
 		# unpad the results
 		if wpad:

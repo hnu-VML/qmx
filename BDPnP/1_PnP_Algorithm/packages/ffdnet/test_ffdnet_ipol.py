@@ -24,7 +24,7 @@ from torch.autograd import Variable
 from .models import FFDNet
 from .utils import batch_psnr, normalize, init_logger_ipol, \
 				variable_to_cv2_image, remove_dataparallel_wrapper, is_rgb
-
+from fvcore.nn import FlopCountAnalysis, parameter_count
 # os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
 # os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 
@@ -162,11 +162,23 @@ def ffdnet_vdenoiser(vnoisy, sigma, model=None, useGPU=True):
 
 		# Test mode
 		with torch.no_grad(): # PyTorch v0.4.0
-		    imnoisy = Variable(imnoisy.type(dtype))
-		    sigma = Variable(torch.FloatTensor([sigma]).type(dtype))
+			imnoisy = Variable(imnoisy.type(dtype))
+			sigma = Variable(torch.FloatTensor([sigma]).type(dtype))
 
 		# Estimate noise and subtract it to the input image
 		im_noise_estim = model(imnoisy, sigma)
+
+		# test_inputs = (torch.randn(1, 1, 1024, 1024).cuda(), torch.randn(1).cuda())
+		# # 计算FLOPs
+		# flops = FlopCountAnalysis(model, test_inputs)
+		# total_flops = flops.total() / 1e9  # 转换为GFLOPs
+
+		# # 计算参数数量
+		# params = parameter_count(model)
+		# total_params = params[""] / 1e6  # 转换为M（百万）
+
+		# print(f"Total FLOPs: {total_flops}")
+		# print(f"Total parameters: {total_params}")
 
 		# # with clip/clamp
 		# outim = torch.clamp(imnoisy-im_noise_estim, 0., 1.)
