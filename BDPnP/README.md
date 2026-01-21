@@ -1,18 +1,6 @@
-# [Efficient and Robust Plug-and-Play Algorithm for Video Snapshot Compressive Imaging and Photomechanical Measurement](https://github.com/Qinmengxi/EfficientPnP)
+# [Binary Deep Prior Guided Snapshot Compressive Imaging](https://github.com/hnu-VML/qmx/tree/main/BDPnP)
 
-## Network Architecture
-<div align="center">
-  <img src="image/SCI.png" width=100% />  
-  
-  Fig1. Schematic diagrams of video SCI system. The orange part represents hardware encoding, and the blue part denotes software decoding (implemented via PnP-based methods).
-</div>
-
-<div align="center">
-  <img src="image/rco-bdpnp.png" width=100% />  
-  
-  Fig2. Schematic diagrams of efficient binary deep plug-and-play algorithm with collaborative optimization for robust video SCI and applications.
-</div>
-
+## Binary Deep Prior
 <div align="center">
   <img src="image/BiFastDVDnet.png" width=100% />  
   
@@ -24,7 +12,7 @@
     <tr>
       <td>
         <img src="image/binaryconv.png" width="100%" />
-        <p align="center">(a) Binary Convolution Unit Module.</p>
+        <p align="center">(a) Regularization Binary Convolution Unit.</p>
       </td>
       <td>
         <img src="image/approxsign.png" width="100%" />
@@ -47,12 +35,12 @@ cd ./1_PnP_Algorithm/
 python main_grayscale_benchmark.py
 ```
 
-The reconstruction quality on six simulated grayscale video SCI datasets is reported in Table II and Table Ⅳ.
+The reconstruction quality on six simulated grayscale video SCI datasets is reported in Table Ⅰ and Table Ⅱ.
 <div align="center">
-  <img src="image/TableⅡ.png" width=100% />  
+  <img src="image/TableⅠ.png" width=100% />  
 </div>
 <div align="center">
-  <img src="image/TableⅣ.png" width=100% />  
+  <img src="image/TableⅡ.png" width=100% />  
 </div>
 
 
@@ -84,8 +72,8 @@ compute_error.m
 ```
 The computed displacement errors and corresponding displacement field visualization are illustrated in the figures below.
 <div align="center">
-  <img src="image/TableⅥ.png" width=100% />  
+  <img src="image/TableⅤ.png" width=100% />  
 </div>
 <div align="center">
-  <img src="image/TableⅦ.png" width=100% />  
+  <img src="image/TableⅥ.png" width=100% />  
 </div>
