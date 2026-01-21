@@ -319,9 +319,9 @@ def test_ffdnet(**args):
 
         # Test mode
 	with torch.no_grad(): # PyTorch v0.4.0
-	    imorig, imnoisy = Variable(imorig.type(dtype)), \
+		imorig, imnoisy = Variable(imorig.type(dtype)), \
 	    				Variable(imnoisy.type(dtype))
-	    nsigma = Variable(
+		nsigma = Variable(
 	    		torch.FloatTensor([args['noise_sigma']]).type(dtype))
 
 	# Measure runtime
@@ -368,8 +368,8 @@ def test_ffdnet(**args):
 		cv2.imwrite("noisy.png", noisyimg)
 		cv2.imwrite("ffdnet.png", outimg)
 		if args['add_noise']:
- 			cv2.imwrite("noisy_diff.png", variable_to_cv2_image(diffnoise))
- 			cv2.imwrite("ffdnet_diff.png", variable_to_cv2_image(diffout))
+			cv2.imwrite("noisy_diff.png", variable_to_cv2_image(diffnoise))
+			cv2.imwrite("ffdnet_diff.png", variable_to_cv2_image(diffout))
 
 if __name__ == "__main__":
 	# Parse arguments
