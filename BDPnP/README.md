@@ -1,5 +1,13 @@
 # [Binary Deep Prior Guided Video Snapshot Compressive Imaging for Full-Field Displacement Measurement](https://github.com/hnu-VML/qmx/tree/main/BDPnP)
 
+## Overall Architecture
+<div align="center">
+  <img src="image/SCI.png" width=100% />  
+  
+  Fig2. Schematic of the full-field displacement measurement framework using video SCI. The moving target is encoded into compressed measurement by the hardware-based encoder (e.g., CACTI) and reconstructed into a video sequence using the proposed BDPnP. After undistortion and perspective transformation, DIC is applied to estimate the full-field displacement.
+</div>
+
+
 ## Binary Deep Prior
 <div align="center">
   <img src="image/BiFastDVDnet.png" width=100% />  
