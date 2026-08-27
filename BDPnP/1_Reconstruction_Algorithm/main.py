@@ -140,8 +140,8 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Video SCI Reconstruction")
 
     #Training parameters
-    parser.add_argument("--method", type=str, default="pnp-fastdvdnet", 	\
-                        help="SCI reconstruction model, such as gap-tv, pnp-ffdnet, pnp-biffdnet, pnp-fastdvdnet and bdpnp.")
+    parser.add_argument("--method", type=str, default="bdpnp", 	\
+                        help="SCI reconstruction model, such as bdpnp.")
     parser.add_argument("--gpu", type=str, default="0", \
                         help="Select the GPU for acceleration")
     parser.add_argument("--is_real", type=bool, default=True, \
@@ -151,14 +151,14 @@ if __name__ == "__main__":
     parser.add_argument("--sigma", default=[100/255, 50/255, 25/255, 12/255], \
                         help="Noise Level")
     parser.add_argument("--iter_max", default=[20, 20, 20, 20], \
-                        help="Number of Iterations at Different Noise Levels") # [20, 20, 20, 20] 
+                        help="Number of Iterations at Different Noise Levels")
     parser.add_argument("--tv_weight", type=float, default=0.3, \
                         help="TV denoising weight (larger for smoother but slower)")
     parser.add_argument("--tv_iter_max", type=int, default=5, \
                         help="TV denoising maximum number of iterations each")
-    parser.add_argument("--datasetdir", type=str, default="./dataset/cacti/photomechanical_imaging_real", \
+    parser.add_argument("--datasetdir", type=str, default="./dataset/cacti/full_field_displacement_measurement", \
                         help="Path to the Data to be Reconstructed")
-    parser.add_argument("--resultsdir", type=str, default="./results_real", \
+    parser.add_argument("--resultsdir", type=str, default="./results", \
                         help="Path to Save the Reconstructed Results")
     argspar = parser.parse_args()
     
@@ -166,21 +166,6 @@ if __name__ == "__main__":
     
     if not os.path.exists(argspar.resultsdir):
         os.mkdir(argspar.resultsdir)
-    
-    # --------------------------------------- GAP-TV --------------------------------------- #
-    main(argspar, method="gap-tv", iter_max=40, is_real=True)
-    
-    # ------------------------------------ PnP-FFDVDnet ------------------------------------ #
-    main(argspar, method="pnp-ffdnet", sigma=[50/255,25/255,12/255,6/255], 
-         iter_max=[10,10,10,10], is_real=True)
-    
-    # ----------------------------------- PnP-BiFFDVDnet ----------------------------------- #
-    main(argspar, method="pnp-biffdnet", sigma=[50/255,25/255,12/255,6/255], 
-         iter_max=[10,10,10,10], is_real=True)
-    
-    # --------------------------- PnP-FastDVDnet (PnP+FastDVDnet) -------------------------- #
-    main(argspar, method="pnp-fastdvdnet", sigma=[75/255,75/255], 
-         iter_max=[20,20], CMTC=False, is_real=True)
     
     # -------------------------- BDPnP (PnP+BiFastDVDnet+CMTC+HAF) ------------------------- #
     main(argspar, method="bdpnp", sigma=[75/255,75/255,75/255], iter_max=[18,40,2], 
